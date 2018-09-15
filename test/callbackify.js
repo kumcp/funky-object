@@ -24,7 +24,6 @@ describe("Callbackify function test cases:", () => {
 
     it('callbackify default', (done) => {
 
-
         let functionCallback = callbackify(functionPromise)
 
         functionCallback(tempString2, (result) => {
@@ -62,4 +61,50 @@ describe("Callbackify function test cases:", () => {
             }
         })
     })
+
+    it('callbackify with position', (done) => {
+        let functionCallback = callbackify(functionFullPromise, { positionCallback: 1 })
+
+        functionCallback(1, (result, error) => {
+            try {
+                expect(error).to.equal(1 - 2)
+                done()
+            } catch (err) {
+                done(err)
+            }
+        }, 2)
+    })
+
+    it('callbackify have success/error callback position success case', (done) => {
+        let functionCallback = callbackify(functionFullPromise, { positionCallback: 1, type: 1 })
+
+        functionCallback(10, (result) => {
+            try {
+                expect(result).to.equal(10 + 20)
+                done()
+            } catch (err) {
+                done(new Error(err))
+            }
+        }, (err) => {
+            done(new Error(err))
+        }, 20)
+    })
+
+
+    it('callbackify have success/error callback position error case', (done) => {
+        let functionCallback = callbackify(functionFullPromise, { positionCallback: 1, type: 1 })
+
+        functionCallback(1, (result) => {
+            done(new Error("failed"))
+        }, (err) => {
+            try {
+                expect(err).to.equal(1 - 2)
+                done()
+            } catch (err) {
+                done(new Error(err))
+            }
+
+        }, 2)
+    })
+
 })

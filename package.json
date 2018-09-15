@@ -4,7 +4,7 @@
   "description": "This is a simple library to help you to transform callback style and promise easily",
   "main": "index.js",
   "scripts": {
-    "test": "mocha test/callbackify.js"
+    "test": "mocha test"
   },
   "author": "kum<kum_cp@yahoo.com.vn>",
   "license": "ISC",

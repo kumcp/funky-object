@@ -181,26 +181,33 @@ describe("Promisify function test cases:", () => {
     })
 
     class TestCase8 {
-        
-        method1(arg1, cb, arg2){
+
+        method1(arg1, cb, arg2) {
             cb(this.method2() + arg1 + this.method3() + arg2)
         }
-        method2(){
-            return tempString
+        method2() {
+            return this.method3() + tempString
         }
-        method3(){
+        method3() {
             return tempString2
         }
 
+        method10(arg1, cb, arg2, ClassName) {
+            if (arg2 > 5) {
+                cb(this.method2() + ClassName.method3() + arg1)
+            } else {
+                cb(null, arg2)
+            }   
+        }
     }
 
     it('promisify function in fake class (proto instance)', (done) => {
         let testCase8 = new TestCase8()
-        let functionPromise = promisify(testCase8.method1, { positionCallback:1, context: testCase8 })
+        let functionPromise = promisify(testCase8.method1, { positionCallback: 1, context: testCase8 })
 
         functionPromise(4, 5).then((result) => {
             try {
-                expect(result).to.equal(tempString + 4 + tempString2 + 5)
+                expect(result).to.equal(tempString2 + tempString + 4 + tempString2 + 5)
                 done()
             } catch (err) {
                 done(new Error(err))
@@ -211,17 +218,19 @@ describe("Promisify function test cases:", () => {
     })
 
     class TestCase9 extends TestCase8 {
-        method2(){
+        method2() {
             return tempString2 + tempString3
         }
-        method1(arg1, cb, arg2){
-            TestCase8.prototype.method1.call(this, arg1, cb, arg2)
+        method1(arg1, cb, arg2) {
+            // TestCase8.prototype.method1.call(this, arg1, cb, arg2)
+            super.method1(arg1, cb, arg2)
         }
+
     }
 
     it('promisify function in extend class', (done) => {
         let testCase9 = new TestCase9()
-        let functionPromise = promisify(testCase9.method1, { positionCallback:1, context: testCase9 })
+        let functionPromise = promisify(testCase9.method1, { positionCallback: 1, context: testCase9 })
 
         functionPromise(4, 5).then((result) => {
             try {
@@ -235,5 +244,37 @@ describe("Promisify function test cases:", () => {
         })
     })
 
+    class TestCase10 extends TestCase8 {
+        method10(arg1, cb, arg2) {
+            // Parse this scope inside super.method10 -> super.method10 will have instance 10 scope
+            return super.method10(arg1, cb, arg2, TestCase10)
+        }
+        method2() {
+            return 2 + this.method3()
+        }
+        static method3() {
+            // this here is prototype, not instance
+            return TestCase9.prototype.method3.call(this)
+        }
+    }
+
+    it('promisify function in extend class with super call and force class', (done) => {
+        let testCase10 = new TestCase10()
+        let functionPromise = promisify(testCase10.method10, { positionCallback: 1, type: 0 ,context: testCase10})
+
+        functionPromise(5, 10).then((result) => {
+
+            try{
+                expect(result).to.equal(2 + tempString2 + tempString2 + 5)
+                done()
+            } catch(err) {
+                done(new Error(err))
+            }
+
+        }).catch((err) => {
+            done(new Error(err))
+        })
+
+    })
 
 })
