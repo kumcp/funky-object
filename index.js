@@ -1,7 +1,4 @@
-const { promisify } = require("./core/promisify")
-const { callbackify } = require("./core/callbackify")
+const funkyTransform = require("./core/main.js")
 
-module.exports = {
-    promisify,
-    callbackify
-}
+
+module.exports = funkyTransform

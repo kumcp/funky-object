@@ -1,14 +1,17 @@
 {
-  "name": "funky-promisify",
+  "name": "funky-object",
   "version": "1.0.0",
-  "description": "This is a simple library to help you to transform callback style and promise easily",
+  "description": "This is a simple library to help you to manipulate or transform object/function",
   "main": "index.js",
   "scripts": {
     "test": "mocha test"
   },
   "author": "kum<kum_cp@yahoo.com.vn>",
   "license": "ISC",
-  "dependencies": {},
+  "dependencies": {
+    "eslint": "^5.7.0",
+    "eslint-config-airbnb": "^17.1.0"
+  },
   "devDependencies": {
     "chai": "^4.1.2",
     "mocha": "^5.2.0"
