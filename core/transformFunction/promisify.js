@@ -25,9 +25,7 @@
  */
 const promisify = (func, options = {}) => {
     const positionOption = options.positionCallback;
-    if (!options.type) {
-        options.type = 0;
-    }
+    if (!options.type) { options.type = 0; }
 
     if (!options.context) options.context = this;
 

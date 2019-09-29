@@ -1,11 +1,17 @@
 /**
  * Filter key value in a object
  * @param {*} object All object
- * @param {*} filter filter function
+ * @param {(key, val) =>{}} filter filter function
+ *
+ * @throws 'OBJECT_NOT_DEFINED', 'NOT_AN_OBJECT', 'FILTER_IS_NOT_FUNCTION'
  */
-const objectFilter = (object, filter) =>
-    Object.keys(object)
-        .filter(key => filter(key, object[key]))
+const objectFilter = (object, filter) => {
+    if (!object) throw new Error('OBJECT_NOT_DEFINED');
+    if (typeof (object) !== 'object') throw new Error('NOT_AN_OBJECT');
+    if (typeof (filter) !== 'function') throw new Error('FILTER_IS_NOT_FUNCTION');
+
+    return Object.keys(object)
+        .filter(key => (filter || ((k, v) => v))(key, object[key]))
         .reduce(
             (newObj, key) => ({
                 ...newObj,
@@ -13,7 +19,7 @@ const objectFilter = (object, filter) =>
             }),
             {}
         );
-
+};
 /**
  * Filter object with a list of key (return a new object)
  *
@@ -92,6 +98,7 @@ const spreadNestedObject = (object, fieldList) =>
     }, {});
 
 module.exports = {
+    objectFilter,
     flattenChildrenObjectList,
     objectFilterByKeys,
     spreadNestedObject
