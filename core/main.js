@@ -1,8 +1,7 @@
-const { callbackify } = require("./transformFunction/callbackify")
-const { promisify } = require("./transformFunction/promisify")
+const { callbackify } = require('./transformFunction/callbackify');
+const { promisify } = require('./transformFunction/promisify');
 
-const QueueProcess = require("./queueProcess")
-
+const QueueProcess = require('./queueProcess');
 
 module.exports = {
     Function: {
@@ -14,4 +13,4 @@ module.exports = {
     Crypto: {},
     CSV: {},
     QueueProcess
-}
+};

@@ -1,6 +1,6 @@
 const defaultCallbackOptions = {
     type: 0
-}
+};
 
 /**
  * Function to transform a Promise style into callback style
@@ -18,47 +18,41 @@ const defaultCallbackOptions = {
  * @param {*} [options.context]
  */
 const callbackify = (func, options) => {
-    let opt = {
+    const opt = {
         ...defaultCallbackOptions,
         ...options
-    }
+    };
 
     const CallbackifyMap = {
         0: (...args) => {
-            let positionOption = opt.positionCallback || args.length - 1
-            let [cb] = args.splice(positionOption, 1)
+            const positionOption = opt.positionCallback || args.length - 1;
+            const [cb] = args.splice(positionOption, 1);
 
             func(...args)
                 .then(result => {
-                    cb(result)
+                    cb(result);
                 })
                 .catch(err => {
-                    cb(null, err)
-                })
+                    cb(null, err);
+                });
         },
         1: (...args) => {
-            let positionOption = opt.positionCallback || args.length - 1
-            let [successCb, errorCb] = args.splice(positionOption, 2)
+            const positionOption = opt.positionCallback || args.length - 1;
+            const [successCb, errorCb] = args.splice(positionOption, 2);
 
             func(...args)
                 .then(result => {
-                    successCb(result)
+                    successCb(result);
                 })
                 .catch(err => {
-                    errorCb(err)
-                })
+                    errorCb(err);
+                });
         }
-    }
+    };
 
-    return CallbackifyMap[opt.type]
-}
-
-const norm = cb => {
-    func(...args).then(result => {
-        cb(result)
-    })
-}
+    return CallbackifyMap[opt.type];
+};
 
 module.exports = {
     callbackify
-}
+};

@@ -1,20 +1,19 @@
 module.exports = {
     env: {
-        browser: true,
         es6: true,
-        amd: true,
         node: true
     },
-    extends: "eslint:recommended",
-    parserOptions: {
-        ecmaVersion: 2016
-    },
+    extends: ['airbnb-base'],
+    // plugins: ['prettier'],
     rules: {
-        indent: ["error", 4],
-        "linebreak-style": ["error", "unix"],
-        quotes: ["error", "double"],
-        semi: ["error", "never"],
-        "no-unused-vars": ["warn"],
-        "func-style": ["error", "declaration", { allowArrowFunctions: true }]
+        // 'prettier/prettier': 'error', // Show error from prettier
+
+        indent: ['error', 4],
+        'linebreak-style': ['error', 'unix'],
+        'no-unused-vars': ['warn'],
+        'func-style': ['error', 'declaration', { allowArrowFunctions: true }],
+        'arrow-parens': ['off'],
+        'implicit-arrow-linebreak': 'off',
+        'comma-dangle': ['error', 'never']
     }
-}
+};

@@ -9,9 +9,8 @@
  * @param {*} func function in format: (obj, ...args) => {}
  */
 const wrappedObject = (object, func = () => {}) => {
-    object[func.name] = function(...args) {
-        return func(this, ...args);
-    };
+    // eslint-disable-next-line no-param-reassign
+    object[func.name] = (...args) => func(this, ...args);
     return object;
 };
 
@@ -22,11 +21,12 @@ const wrappedObject = (object, func = () => {}) => {
  * @param {*} object
  * @param {*} mappingFunctionList
  */
-const decorFunction = (object, mappingFunctionList = {}) => {
-    return Object.keys(mappingFunctionList).reduce((prevObj, funcName) => {
-        return wrappedObject(prevObj, mappingFunctionList[funcName]);
-    }, object);
-};
+const decorFunction = (object, mappingFunctionList = {}) =>
+    Object.keys(mappingFunctionList).reduce(
+        (prevObj, funcName) =>
+            wrappedObject(prevObj, mappingFunctionList[funcName]),
+        object
+    );
 
 module.exports = {
     wrappedObject,

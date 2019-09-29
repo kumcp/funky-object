@@ -1,8 +1,6 @@
 // Default value
-const LOOPING_TIME_IN_MS = 5000
-const MAX_REQUESTS_DEFAULT = 50
-
-const { wait } = require("../commons/async")
+const LOOPING_TIME_IN_MS = 5000;
+const MAX_REQUESTS_DEFAULT = 50;
 
 const QueueRequest = {
     maxRequestNum: MAX_REQUESTS_DEFAULT,
@@ -14,45 +12,48 @@ const QueueRequest = {
      * @param {number} timeDelay time delay for each process. Default is 1000ms
      */
     startQueueDelay(timeDelay = 1000) {
-        let lockGate = false
-        let requestIndex = 0
+        let lockGate = false;
+        let requestIndex = 0;
 
         this.queueDelayId = setInterval(async () => {
             if (this.itemRequest.length <= 0 || lockGate) {
-                return
+                return;
             }
 
-            let firstRequest = this.itemRequest.shift()
-            console.log(this.itemRequest)
-            lockGate = true
+            const firstRequest = this.itemRequest.shift();
+            console.log(this.itemRequest);
+            lockGate = true;
 
-            console.time(`Process time for item ${requestIndex}`)
-            await firstRequest()
-            console.timeEnd(`Process time for item ${requestIndex}`)
+            console.time(`Process time for item ${requestIndex}`);
+            await firstRequest();
+            console.timeEnd(`Process time for item ${requestIndex}`);
 
-            requestIndex++
+            requestIndex += 1;
 
-            lockGate = false
-        }, timeDelay)
+            lockGate = false;
+        }, timeDelay);
     },
     /**
      * Start process queue one by one until the last process then stop
      */
     async startQueue() {
-        let lockGate = false
-        let requestIndex = 0
+        let lockGate = false;
+        let requestIndex = 0;
 
         while (!(this.itemRequest.length <= 0 || lockGate)) {
-            let firstRequest = this.itemRequest.shift()
-            console.log(this.itemRequest)
-            lockGate = true
+            const firstRequest = this.itemRequest.shift();
+            console.log(this.itemRequest);
+            lockGate = true;
 
-            console.time(`Process time for item ${requestIndex}`)
-            await firstRequest()
-            console.timeEnd(`Process time for item ${requestIndex}`)
+            console.time(`Process time for item ${requestIndex}`);
 
-            requestIndex++
-            lockGate = false
+            // TODO: Need test
+            // eslint-disable-next-line no-await-in-loop
+            await firstRequest();
+            console.timeEnd(`Process time for item ${requestIndex}`);
+
+            requestIndex += 1;
+            lockGate = false;
         }
     },
     /**
@@ -63,18 +64,18 @@ const QueueRequest = {
      */
     startQueueInfitify() {
         this.queueInfinityId = setInterval(async () => {
-            if (this.itemRequest.length <= 0 || lockGate) {
-                return
+            if (this.itemRequest.length <= 0) {
+                return;
             }
 
-            await this.startQueue()
-        }, this.loopTimeDelayInMs)
+            await this.startQueue();
+        }, this.loopTimeDelayInMs);
     },
     /**
      *
      */
     stopQueueInfinity() {
-        clearInterval(this.queueInfinityId)
+        clearInterval(this.queueInfinityId);
     },
 
     /**
@@ -84,11 +85,11 @@ const QueueRequest = {
      * which will be add to queue
      */
     generateRequest(params = {}) {
-        if (typeof params === "function") {
-            return params
+        if (typeof params === 'function') {
+            return params;
         }
 
-        return this.generateRequestFunctor(params)
+        return this.generateRequestFunctor(params);
     },
     /**
      * Abstract function to construct function generateRequest for any specific use case.
@@ -103,10 +104,10 @@ const QueueRequest = {
      */
     generateRequestFunctor(params = {}) {
         if (!params.type) {
-            return async () => {}
+            return async () => {};
         }
 
-        return async () => {}
+        return async () => {};
     },
     /**
      * Generate a request for queue and add to queue
@@ -115,7 +116,7 @@ const QueueRequest = {
      * which will be add to queue
      */
     addRequest(params) {
-        this.addItem(this.generateRequest(params))
+        this.addItem(this.generateRequest(params));
     },
     /**
      * Add a request to queue
@@ -124,12 +125,12 @@ const QueueRequest = {
      */
     addItem(item) {
         if (this.itemRequest.length > this.maxRequestNum) {
-            throw new Error("MAX_REQUEST_EXCEED")
+            throw new Error('MAX_REQUEST_EXCEED');
         }
 
-        this.itemRequest.push(item)
+        this.itemRequest.push(item);
     }
-}
+};
 
 /**
  * Generate an instance of QueueRequest
@@ -142,16 +143,13 @@ const QueueRequest = {
  *
  * @return {QueueRequest} Return a QueueRequest
  */
-const generateQueueRequest = (options = {}) => {
-    return {
-        ...Object.create(QueueRequest),
-        maxRequestNum: options.maxRequestNum || MAX_REQUESTS_DEFAULT,
-        loopTimeDelayInMs: options.loopTimeDelayInMs || LOOPING_TIME_IN_MS
-    }
-}
+const generateQueueRequest = (options = {}) => ({
+    ...Object.create(QueueRequest),
+    maxRequestNum: options.maxRequestNum || MAX_REQUESTS_DEFAULT,
+    loopTimeDelayInMs: options.loopTimeDelayInMs || LOOPING_TIME_IN_MS
+});
 
 module.exports = {
-    RequestType,
     QueueRequest,
     generateQueueRequest
-}
+};

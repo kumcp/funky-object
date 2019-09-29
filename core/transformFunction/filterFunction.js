@@ -5,13 +5,10 @@
  *
  * @returns {Array} list of function in object
  */
-const filterFunction = object => {
-    return Object.keys(object)
-        .filter(key => {
-            return typeof object[key] === 'function';
-        })
+const filterFunction = object =>
+    Object.keys(object)
+        .filter(key => typeof object[key] === 'function')
         .map(key => object[key]);
-};
 
 module.exports = {
     filterFunction

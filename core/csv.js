@@ -1,15 +1,15 @@
 const fs = require('fs');
 
 // Other module
-const { escapeValueCSV } = require('./escape');
+const { escapeValueCSV } = require('./escape.js');
 
 const defaultOption = {
     separator: ',',
     endLine: '\n',
-    nullValue: ''
+    nullValue: '',
+    stringDelimiter: '"'
 };
 
-const fileName = `${__dirname}/obj.csv`;
 
 /**
  * Combine the input options and default options. If input options
@@ -19,11 +19,20 @@ const fileName = `${__dirname}/obj.csv`;
  *
  * @returns {Object} new object contain the combination of input options and default options
  */
-const combineDefaultOptions = inputOptions => {
-    return {
-        ...defaultOption,
-        ...inputOptions
-    };
+const combineDefaultOptions = inputOptions => ({
+    ...defaultOption,
+    ...inputOptions
+});
+
+const separateStringAsCSVFormat = (line, inputOption = {}) => {
+    const options = combineDefaultOptions(inputOption);
+    const splitOperator = new RegExp(`(".*?"|[^"${options.delimiter}.]+)`, 'g');
+    // const values = line.split(options.separator);
+    return ((line || '').match(splitOperator) || []).map(item =>
+        (item.charAt(0) === options.stringDelimiter
+        && item.charAt(item.length - 1) === options.stringDelimiter
+            ? item.substr(1, item.length - 2)
+            : item));
 };
 
 /**
@@ -36,7 +45,9 @@ const combineDefaultOptions = inputOptions => {
  */
 const getListValueRequire = (object, fieldRequire, inputOptions = {}) => {
     const options = combineDefaultOptions(inputOptions);
-    return fieldRequire.map(field => escapeValueCSV(object[field]) || options.nullValue);
+    return fieldRequire.map(
+        field => escapeValueCSV(object[field]) || options.nullValue
+    );
 };
 
 /**
@@ -50,12 +61,15 @@ const getListValueRequire = (object, fieldRequire, inputOptions = {}) => {
  */
 const getLineValueRequire = (object, fieldRequire, inputOptions = {}) => {
     const options = combineDefaultOptions(inputOptions);
-    return getListValueRequire(object, fieldRequire, inputOptions).join(options.separator);
+    return getListValueRequire(object, fieldRequire, inputOptions).join(
+        options.separator
+    );
 };
 
 const setValueRequire = (line, fieldRequire, inputOptions = {}) => {
     const options = combineDefaultOptions(inputOptions);
-    const values = line.split(options.separator);
+    // const values = line.split(options.separator);
+    const values = separateStringAsCSVFormat(line, options);
     return fieldRequire.reduce(
         (prevObj, field, fieldIndex) => ({
             ...prevObj,
@@ -72,13 +86,20 @@ const setValueRequire = (line, fieldRequire, inputOptions = {}) => {
  * @param {Array} fieldRequire List of require fields to show
  * @param {defaultOption} inputOptions options
  */
-const convertObjList2LineList = (objectList, fieldRequire, inputOptions = {}) => {
+const convertObjList2LineList = (
+    objectList,
+    fieldRequire,
+    inputOptions = {}
+) => {
     const options = combineDefaultOptions(inputOptions);
 
     const resultHeader = fieldRequire.join(options.separator);
     const resultList = [resultHeader];
     return objectList.reduce(
-        (resultObj, currentObject) => [...resultObj, getLineValueRequire(currentObject, fieldRequire, inputOptions)],
+        (resultObj, currentObject) => [
+            ...resultObj,
+            getLineValueRequire(currentObject, fieldRequire, inputOptions)
+        ],
         resultList
     );
 };
@@ -103,9 +124,17 @@ const saveLineCSVFile = async (lineStringList, filePath, inputOptions = {}) => {
  * @param {*} filePath csv file path
  * @param {*} inputOptions options
  */
-const saveObjectListCSVFile = (objectList, fieldRequire, filePath, inputOptions = {}) => {
-    return saveLineCSVFile(convertObjList2LineList(objectList, fieldRequire), filePath, inputOptions);
-};
+const saveObjectListCSVFile = (
+    objectList,
+    fieldRequire,
+    filePath,
+    inputOptions = {}
+) =>
+    saveLineCSVFile(
+        convertObjList2LineList(objectList, fieldRequire),
+        filePath,
+        inputOptions
+    );
 
 /**
  * Read csv file and return as a string
@@ -113,9 +142,7 @@ const saveObjectListCSVFile = (objectList, fieldRequire, filePath, inputOptions 
  *
  * @returns {String} data in file
  */
-const readCSV = async filePath => {
-    return await fs.readFileSync(filePath, { encoding: 'utf8' });
-};
+const readCSV = filePath => fs.readFileSync(filePath, { encoding: 'utf8' });
 
 /**
  * Read csv file and turn into a line string list
@@ -142,8 +169,11 @@ const readCSVtoObjectList = async (filePath, inputOptions = {}) => {
     const options = combineDefaultOptions(inputOptions);
 
     const lines = await readCSVtoLineList(filePath, options);
-    const headers = (lines[0] || '').split(options.separator).map(header => header.trim());
-    return lines.filter((line, index) => index > 0).map(lineString => setValueRequire(lineString, headers));
+
+    const headers = separateStringAsCSVFormat(lines[0]);
+    return lines
+        .filter((line, index) => index > 0)
+        .map(lineString => setValueRequire(lineString, headers));
 };
 
 module.exports = {

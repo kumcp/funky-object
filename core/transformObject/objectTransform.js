@@ -20,7 +20,8 @@ const objectFilter = (object, filter) =>
  * @param {*} object contain key-value
  * @param {*} keyList list key want to filter
  */
-const objectFilterByKeys = (object, keyList) => objectFilter(object, key => keyList.indexOf(key) > -1);
+const objectFilterByKeys = (object, keyList) =>
+    objectFilter(object, key => keyList.indexOf(key) > -1);
 
 /**
  * Turn list object in hierachy into a flatten list
@@ -55,13 +56,19 @@ const flattenChildrenObjectList = (chilrenObjectList, childrenField) =>
         .reduce((flattenList, object) => {
             if (Array.isArray(object[childrenField])) {
                 return flattenList.concat(
-                    flattenChildrenObjectList(object[childrenField], childrenField).map(childObj => ({
+                    flattenChildrenObjectList(
+                        object[childrenField],
+                        childrenField
+                    ).map(childObj => ({
                         ...childObj,
                         ...objectFilter(object, key => key !== childrenField)
                     }))
                 );
             }
-            return [...flattenList, objectFilter(object, key => key !== childrenField)];
+            return [
+                ...flattenList,
+                objectFilter(object, key => key !== childrenField)
+            ];
         }, []);
 
 /**
@@ -72,7 +79,10 @@ const flattenChildrenObjectList = (chilrenObjectList, childrenField) =>
  */
 const spreadNestedObject = (object, fieldList) =>
     Object.keys(object).reduce((newObj, currentKey) => {
-        if (fieldList.indexOf(currentKey) > -1 && typeof object[currentKey] === 'object') {
+        if (
+            fieldList.indexOf(currentKey) > -1
+            && typeof object[currentKey] === 'object'
+        ) {
             return { ...newObj, ...object[currentKey] };
         }
         return {
