@@ -1,17 +1,17 @@
-const updateObject = function(oldObj, propertyList) {
+const updateObject = (oldObj, propertyList) => {
     for (key in propertyList) {
         oldObj[key] = propertyList[key];
     }
 };
 
-const updateProperty = function(oldObj, propertyName, value) {
+const updateProperty = (oldObj, propertyName, value) => {
     oldObj[propertyName] = value;
 };
 
-const filter = function(obj, logicFunc, autoDecode = false) {
+const filter = (obj, logicFunc, autoDecode = false) => {
     const newObj = {};
 
-    return (function() {
+    return (function () {
         for (const key in obj) {
             if (logicFunc(key, obj[key])) {
                 if (autoDecode && typeof obj[key] === 'string') {
@@ -22,44 +22,36 @@ const filter = function(obj, logicFunc, autoDecode = false) {
             }
         }
         return newObj;
-    })();
+    }());
 };
 
-const filterList = function(objList, logicFunc, autoDecode = false) {
+const filterList = function (objList, logicFunc, autoDecode = false) {
     return objList
-        .map(function(obj) {
+        .map(obj => {
             if (logicFunc(obj)) {
                 return obj;
-            } else {
-                return undefined;
             }
+            return undefined;
         })
-        .filter(function(item) {
-            return item != null;
-        });
+        .filter(item => item != null);
 };
 
-const filterByKeys = function(obj, keyList, autoDecode = false) {
-    return filter(
-        obj,
-        function(key, val) {
-            return keyList.indexOf(key) > -1;
-        },
-        autoDecode
-    );
+const filterByKeys = function (obj, keyList, autoDecode = false) {
+    return filter(obj, (key, val) => keyList.indexOf(key) > -1, autoDecode);
 };
 
-const filterListByKeys = function(objList, keyList, autoDecode = false) {
-    return objList.map(function(obj) {
-        return filterByKeys(obj, keyList);
-    });
+const filterListByKeys = function (objList, keyList, autoDecode = false) {
+    return objList.map(obj => filterByKeys(obj, keyList));
 };
-const replateArray = function(obj, characterList, newCharacterList) {
+const replateArray = function (obj, characterList, newCharacterList) {
     if (!obj) {
         return '';
     }
     for (let i = 0; i < characterList.length; i++) {
-        obj = obj.replace(new RegExp(characterList[i], 'gi'), newCharacterList[i]);
+        obj = obj.replace(
+            new RegExp(characterList[i], 'gi'),
+            newCharacterList[i]
+        );
     }
     return obj;
 };
@@ -68,35 +60,32 @@ const replateArray = function(obj, characterList, newCharacterList) {
 // [{a:1},{a:2},{a:1},{b:2},{a:2}]
 // -> [{number: [1,3], meta: {a:1}}, {number:[2,5], meta: {a:2}},{number:[3], meta: {b:2}}]
 
-const grepList = function(listObj, logicCheck, logicAdd) {
+const grepList = function (listObj, logicCheck, logicAdd) {
     const result = [];
     listObj.forEach((element, index) => {
-
         let grepped = false;
         (function (cb) {
-            result.forEach(function (elemResult) {
+            result.forEach(elemResult => {
                 if (logicCheck(elemResult.meta, element)) {
-                    elemResult.number.push(index)
-                    grepped = true
+                    elemResult.number.push(index);
+                    grepped = true;
                 }
-            })
-            cb()
-        })(function () {
+            });
+            cb();
+        }(() => {
             if (!grepped) {
                 result.push({
                     number: [index],
                     meta: element
-                })
+                });
             }
-        })
+        }));
     });
 
-    return result.map((elem) => {
-        return logicAdd(elem)
-    });
+    return result.map(elem => logicAdd(elem));
 };
 
-const swapKeyValue = function(obj) {
+const swapKeyValue = function (obj) {
     const result = {};
     for (const key in obj) {
         result[obj[key]] = key;
@@ -106,6 +95,7 @@ const swapKeyValue = function(obj) {
 
 /**
  * Edit each value in object with key
+ * NOTE: create a new object not related to parsed object
  *
  * @param {*} object object to edit
  * @param {*} manipulateFunc function for create new object
@@ -118,13 +108,32 @@ const swapKeyValue = function(obj) {
  *
  * @returns return new object edited from old object
  */
+const editValue = (object, manipulateFunc) =>
+    Object.keys(object).reduce(
+        (prev, key) => ({ ...prev, [key]: manipulateFunc(key, object[key]) }),
+        {}
+    );
 
-const editValue = function(object, manipulateFunc) {
-    return Object.keys(object).reduce((prev, key) => {
+/**
+ * Edit each value in object with key
+ * NOTE: Edit directly parsed object
+ *
+ * @param {*} object object to edit
+ * @param {*} manipulateFunc function for create new object
+ *  ```
+ *  function (key, value){
+ *  // ...
+ *  return newValue
+ *  }
+ * ```
+ *
+ * @returns return parsed object
+ */
+const editValueDirect = (object, manipulateFunc) =>
+    Object.keys(object).reduce((prev, key) => {
         prev[key] = manipulateFunc(key, object[key]);
         return prev;
-    }, {});
-};
+    }, object);
 
 /**
  * get key by value in array
@@ -132,9 +141,8 @@ const editValue = function(object, manipulateFunc) {
  * @param {*} value
  * @return key follow value
  */
-const getKeyByValue = function(object, value) {
-    return Object.keys(object).find(key => object[key] === value);
-};
+const getKeyByValue = (object, value) =>
+    Object.keys(object).find(key => object[key] === value);
 
 module.exports = {
     updateObject,
@@ -146,6 +154,7 @@ module.exports = {
     grepList,
     swapKeyValue,
     editValue,
+    editValueDirect,
     replateArray,
     getKeyByValue
 };

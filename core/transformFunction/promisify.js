@@ -10,7 +10,12 @@
  * - `context`:(Default = this) context of function
  *
  * @param {function} func Function in callback style
- * @param {Object} options:
+ * @param {{
+ * positionCallback: Number,
+ * type: Number,
+ * context: any,
+ * }} options can be
+ *
  *
  *
  * @param {Number} [options.positionCallback]
@@ -19,79 +24,72 @@
  * @return {function} Function in Promise style
  */
 const promisify = (func, options = {}) => {
-    let positionOption = options.positionCallback
-    if (!options.type) options.type = 0
+    const positionOption = options.positionCallback;
+    if (!options.type) { options.type = 0; }
 
-    if (!options.context) options.context = this
+    if (!options.context) options.context = this;
 
     const promiseTypeMap = {
         0: (...params) => {
-            const position = positionOption || params.length
+            const position = positionOption || params.length;
 
             return new Promise((resolve, reject) => {
-                const callback = (result, err) => {
-                    return err ? reject(err) : resolve(result)
-                }
+                const callback = (result, err) =>
+                    (err ? reject(err) : resolve(result));
 
-                let result = func.apply(options.context, [
+                const result = func.apply(options.context, [
                     ...params.slice(0, position),
                     callback,
                     ...params.slice(position, params.length)
-                ])
+                ]);
                 if (result) {
-                    resolve(result)
+                    resolve(result);
                 }
-            })
+            });
         },
         1: (...params) => {
-            const position = positionOption || params.length
+            const position = positionOption || params.length;
 
             return new Promise(resolve => {
                 // For multiple callback, Promise (Default) only receive 1 parameter as result, so
                 // using array result instead
 
-                const callback = (...result) => resolve(result)
+                const callback = (...result) => resolve(result);
 
                 func.apply(options.context, [
                     ...params.slice(0, position),
                     callback,
                     ...params.slice(position, params.length)
-                ])
-            })
+                ]);
+            });
         },
         2: (...params) => {
-            const position = positionOption || params.length
+            const position = positionOption || params.length;
 
             return new Promise((resolve, reject) => {
-                const successCallback = (...result) => {
-                    return resolve(result)
-                }
+                const successCallback = (...result) => resolve(result);
 
-                const errorCallback = (...err) => {
-                    return reject(err)
-                }
+                const errorCallback = (...err) => reject(err);
 
                 func.apply(options.context, [
                     ...params.slice(0, position),
                     successCallback,
                     errorCallback,
                     ...params.slice(position, params.length)
-                ])
-            })
+                ]);
+            });
         }
-    }
+    };
 
-    const normalFunc = (...params) => {
-        return func.apply(this, [...params])
-    }
+    const normalFunc = (...params) => func.apply(this, [...params]);
 
-    return promiseTypeMap[options.type] || normalFunc
-}
+    return promiseTypeMap[options.type] || normalFunc;
+};
 
 function a() {}
 
-const addSupportPromise = (func, options = {}) => {}
+const addSupportPromise = (func, options = {}) => {};
 
 module.exports = {
     promisify
-}
+};

@@ -1,11 +1,17 @@
 /**
  * Filter key value in a object
  * @param {*} object All object
- * @param {*} filter filter function
+ * @param {(key, val) =>{}} filter filter function
+ *
+ * @throws 'OBJECT_NOT_DEFINED', 'NOT_AN_OBJECT', 'FILTER_IS_NOT_FUNCTION'
  */
-const objectFilter = (object, filter) =>
-    Object.keys(object)
-        .filter(key => filter(key, object[key]))
+const objectFilter = (object, filter) => {
+    if (!object) throw new Error('OBJECT_NOT_DEFINED');
+    if (typeof (object) !== 'object') throw new Error('NOT_AN_OBJECT');
+    if (typeof (filter) !== 'function') throw new Error('FILTER_IS_NOT_FUNCTION');
+
+    return Object.keys(object)
+        .filter(key => (filter || ((k, v) => v))(key, object[key]))
         .reduce(
             (newObj, key) => ({
                 ...newObj,
@@ -13,14 +19,15 @@ const objectFilter = (object, filter) =>
             }),
             {}
         );
-
+};
 /**
  * Filter object with a list of key (return a new object)
  *
  * @param {*} object contain key-value
  * @param {*} keyList list key want to filter
  */
-const objectFilterByKeys = (object, keyList) => objectFilter(object, key => keyList.indexOf(key) > -1);
+const objectFilterByKeys = (object, keyList) =>
+    objectFilter(object, key => keyList.indexOf(key) > -1);
 
 /**
  * Turn list object in hierachy into a flatten list
@@ -55,13 +62,19 @@ const flattenChildrenObjectList = (chilrenObjectList, childrenField) =>
         .reduce((flattenList, object) => {
             if (Array.isArray(object[childrenField])) {
                 return flattenList.concat(
-                    flattenChildrenObjectList(object[childrenField], childrenField).map(childObj => ({
+                    flattenChildrenObjectList(
+                        object[childrenField],
+                        childrenField
+                    ).map(childObj => ({
                         ...childObj,
                         ...objectFilter(object, key => key !== childrenField)
                     }))
                 );
             }
-            return [...flattenList, objectFilter(object, key => key !== childrenField)];
+            return [
+                ...flattenList,
+                objectFilter(object, key => key !== childrenField)
+            ];
         }, []);
 
 /**
@@ -72,7 +85,10 @@ const flattenChildrenObjectList = (chilrenObjectList, childrenField) =>
  */
 const spreadNestedObject = (object, fieldList) =>
     Object.keys(object).reduce((newObj, currentKey) => {
-        if (fieldList.indexOf(currentKey) > -1 && typeof object[currentKey] === 'object') {
+        if (
+            fieldList.indexOf(currentKey) > -1
+            && typeof object[currentKey] === 'object'
+        ) {
             return { ...newObj, ...object[currentKey] };
         }
         return {
@@ -82,6 +98,7 @@ const spreadNestedObject = (object, fieldList) =>
     }, {});
 
 module.exports = {
+    objectFilter,
     flattenChildrenObjectList,
     objectFilterByKeys,
     spreadNestedObject
