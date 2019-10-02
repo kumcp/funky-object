@@ -245,6 +245,7 @@ const readCSVtoObjectList = async (filePath, inputOptions = {}) => {
 module.exports = {
     saveObjectListCSVFile,
     saveLineCSVFile,
+    readCSVtoLineList,
     readCSVtoObjectList,
     separateStringAsCSVFormat,
     setLineListValue,

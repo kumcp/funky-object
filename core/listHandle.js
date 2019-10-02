@@ -62,6 +62,7 @@ const sumByKey = (arrayList, key) => sumByKeyIf(arrayList, key, () => true);
 const removeDuplicateByKey = (arrayList, key) =>
     removeDuplicate(arrayList, (newVal, oldVal) => newVal[key] === oldVal[key]);
 
+
 module.exports = {
     sumUp,
     sumByKey,
