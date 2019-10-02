@@ -1,7 +1,7 @@
 const fs = require('fs');
 
 // Other module
-const { escapeValueCSV } = require('./escape.js');
+const { escapeValueCSV } = require('./escape');
 
 const defaultOption = {
     separator: ',',
@@ -9,7 +9,6 @@ const defaultOption = {
     nullValue: '',
     stringDelimiter: '"'
 };
-
 
 /**
  * Combine the input options and default options. If input options
@@ -24,15 +23,47 @@ const combineDefaultOptions = inputOptions => ({
     ...inputOptions
 });
 
+// WRITE CSV file
+
 const separateStringAsCSVFormat = (line, inputOption = {}) => {
     const options = combineDefaultOptions(inputOption);
-    const splitOperator = new RegExp(`(".*?"|[^"${options.delimiter}.]+)`, 'g');
+    const sep = options.separator;
+    const strDlmter = options.stringDelimiter;
+    const splitOperator = new RegExp(
+        `(^([^${sep}^${strDlmter}]*)${sep}|`
+            + `${sep}|`
+            + `([^${strDlmter}]+[^${sep}]*)${sep}|`
+            + `${strDlmter}((?:(?!${strDlmter}${sep}).)*)${strDlmter}${sep}|`
+            + `([^${strDlmter}]+[^${sep}]*)$|`
+            + `${strDlmter}((?:(?!${strDlmter}${sep}).)*)${strDlmter}$)`,
+        'g'
+    );
     // const values = line.split(options.separator);
-    return ((line || '').match(splitOperator) || []).map(item =>
-        (item.charAt(0) === options.stringDelimiter
-        && item.charAt(item.length - 1) === options.stringDelimiter
-            ? item.substr(1, item.length - 2)
-            : item));
+    return ((line || '').match(splitOperator) || [])
+        .map(item => {
+            let neatString = item;
+
+            if (neatString === '') {
+                return undefined;
+            }
+
+            if (
+                neatString.charAt(neatString.length - 1) === options.separator
+            ) {
+                neatString = neatString.substr(0, neatString.length - 1);
+            }
+
+            if (
+                neatString.charAt(0) === options.stringDelimiter
+                && neatString.charAt(neatString.length - 1)
+                    === options.stringDelimiter
+            ) {
+                neatString = neatString.substr(1, neatString.length - 2);
+            }
+
+            return neatString;
+        })
+        .filter(item => item !== undefined);
 };
 
 /**
@@ -63,19 +94,6 @@ const getLineValueRequire = (object, fieldRequire, inputOptions = {}) => {
     const options = combineDefaultOptions(inputOptions);
     return getListValueRequire(object, fieldRequire, inputOptions).join(
         options.separator
-    );
-};
-
-const setValueRequire = (line, fieldRequire, inputOptions = {}) => {
-    const options = combineDefaultOptions(inputOptions);
-    // const values = line.split(options.separator);
-    const values = separateStringAsCSVFormat(line, options);
-    return fieldRequire.reduce(
-        (prevObj, field, fieldIndex) => ({
-            ...prevObj,
-            [field]: values[fieldIndex] ? values[fieldIndex].trim() : ''
-        }),
-        {}
     );
 };
 
@@ -136,6 +154,57 @@ const saveObjectListCSVFile = (
         inputOptions
     );
 
+// READ CSV file
+
+/**
+ * Set value from csv line to object with coresponding keys
+ * Ex:
+ *
+ * setValueRequire("1, Hellen, 45", ["id", "name", "age"])
+ * // => {id: 1, name: "Hellen", age: 45}
+ *
+ * @param {*} line
+ * @param {*} fieldRequire
+ * @param {*} inputOptions
+ */
+const setValueRequire = (line, fieldRequire, inputOptions = {}) => {
+    const options = combineDefaultOptions(inputOptions);
+    // const values = line.split(options.separator);
+    const values = separateStringAsCSVFormat(line, options);
+    return fieldRequire.reduce(
+        (prevObj, field, fieldIndex) => ({
+            ...prevObj,
+            [field]: values[fieldIndex] ? values[fieldIndex].trim() : ''
+        }),
+        {}
+    );
+};
+
+/**
+ * Set values from line list to object with corresponding header (line 0)
+ *
+ * Ex:
+ * ```
+ * setLineListValue([
+ *  "id, name, age",
+ *  "1, Hellen, 30",
+ *  "2, Cao, 26"
+ * ])
+ *
+ *  // => [
+ *      { id: 1, name: "Hellen", age: 30 },
+ *      { id: 2, name: "Cao", age: 26 },
+ *      ]
+ * ```
+ * @param {Array} lines contains a list of string line
+ */
+const setLineListValue = lines => {
+    const headers = separateStringAsCSVFormat(lines[0]);
+    return lines
+        .filter((line, index) => index > 0)
+        .map(lineString => setValueRequire(lineString, headers));
+};
+
 /**
  * Read csv file and return as a string
  * @param {*} filePath
@@ -170,14 +239,15 @@ const readCSVtoObjectList = async (filePath, inputOptions = {}) => {
 
     const lines = await readCSVtoLineList(filePath, options);
 
-    const headers = separateStringAsCSVFormat(lines[0]);
-    return lines
-        .filter((line, index) => index > 0)
-        .map(lineString => setValueRequire(lineString, headers));
+    return setLineListValue(lines);
 };
 
 module.exports = {
     saveObjectListCSVFile,
     saveLineCSVFile,
-    readCSVtoObjectList
+    readCSVtoLineList,
+    readCSVtoObjectList,
+    separateStringAsCSVFormat,
+    setLineListValue,
+    getLineValueRequire
 };

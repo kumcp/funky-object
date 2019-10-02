@@ -5,6 +5,8 @@ const QueueProcess = require('./queueProcess');
 
 const ObjectTransform = require('./transformObject/objectTransform');
 
+const CSV = require('./csv');
+
 module.exports = {
     Function: {
         callbackify,
@@ -13,6 +15,6 @@ module.exports = {
     List: {},
     ObjectTransform,
     Crypto: {},
-    CSV: {},
+    CSV,
     QueueProcess
 };

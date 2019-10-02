@@ -4,7 +4,7 @@
     "description": "This is a simple library to help you to manipulate or transform object/function",
     "main": "index.js",
     "scripts": {
-        "test": "mocha test -r"
+        "test": "mocha ./test/* --recursives"
     },
     "author": "kum<kum_cp@yahoo.com.vn>",
     "license": "ISC",
@@ -14,6 +14,7 @@
         "eslint": "^5.16.0",
         "eslint-config-airbnb-base": "^14.0.0",
         "eslint-plugin-import": "^2.18.2",
-        "mocha": "^5.2.0"
+        "mocha": "^5.2.0",
+        "nyc": "^14.1.1"
     }
 }

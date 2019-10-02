@@ -1,144 +1,180 @@
-const updateObject = (oldObj, propertyList) => {
-    for (key in propertyList) {
-        oldObj[key] = propertyList[key];
-    }
+/* eslint-disable no-param-reassign */
+const ReturnType = {
+    MODIFY_PARAM: 0,
+    SHALLOW_COPY: 1
 };
 
-const updateProperty = (oldObj, propertyName, value) => {
-    oldObj[propertyName] = value;
+const ConflictHanlde = {
+    OVERWRITE: 0,
+    KEEP: 1,
+    MAKE_LIST: 2,
+    CUSTOM: -1
 };
 
-const filter = (obj, logicFunc, autoDecode = false) => {
-    const newObj = {};
-
-    return (function () {
-        for (const key in obj) {
-            if (logicFunc(key, obj[key])) {
-                if (autoDecode && typeof obj[key] === 'string') {
-                    newObj[key] = decodeURI(obj[key]);
-                } else {
-                    newObj[key] = obj[key];
-                }
-            }
-        }
-        return newObj;
-    }());
-};
-
-const filterList = function (objList, logicFunc, autoDecode = false) {
-    return objList
-        .map(obj => {
-            if (logicFunc(obj)) {
-                return obj;
-            }
-            return undefined;
-        })
-        .filter(item => item != null);
-};
-
-const filterByKeys = function (obj, keyList, autoDecode = false) {
-    return filter(obj, (key, val) => keyList.indexOf(key) > -1, autoDecode);
-};
-
-const filterListByKeys = function (objList, keyList, autoDecode = false) {
-    return objList.map(obj => filterByKeys(obj, keyList));
-};
-const replateArray = function (obj, characterList, newCharacterList) {
-    if (!obj) {
-        return '';
-    }
-    for (let i = 0; i < characterList.length; i++) {
-        obj = obj.replace(
-            new RegExp(characterList[i], 'gi'),
-            newCharacterList[i]
-        );
-    }
-    return obj;
-};
-
-// Turn a list object into a compact list object if value in object is the same
-// [{a:1},{a:2},{a:1},{b:2},{a:2}]
-// -> [{number: [1,3], meta: {a:1}}, {number:[2,5], meta: {a:2}},{number:[3], meta: {b:2}}]
-
-const grepList = function (listObj, logicCheck, logicAdd) {
-    const result = [];
-    listObj.forEach((element, index) => {
-        let grepped = false;
-        (function (cb) {
-            result.forEach(elemResult => {
-                if (logicCheck(elemResult.meta, element)) {
-                    elemResult.number.push(index);
-                    grepped = true;
-                }
-            });
-            cb();
-        }(() => {
-            if (!grepped) {
-                result.push({
-                    number: [index],
-                    meta: element
-                });
-            }
-        }));
-    });
-
-    return result.map(elem => logicAdd(elem));
-};
-
-const swapKeyValue = function (obj) {
-    const result = {};
-    for (const key in obj) {
-        result[obj[key]] = key;
-    }
-    return result;
+const defaultOptions = {
+    returnType: ReturnType.SHALLOW_COPY,
+    conflictHandle: ConflictHanlde.OVERWRITE
 };
 
 /**
- * Edit each value in object with key
- * NOTE: create a new object not related to parsed object
+ * Update object with another object
+ * Ex:
+ * ```
+ * updateObject({ a: 1, b: 2}, {b: 3, c: 5})
+ * // => { a: 1, b: 3, c:5 }
+ * ```
  *
+ * @param {{}} oldObj object need to update info
+ * @param {{}} propertyList param and value need to update
+ * @param {{returnType: ReturnType}} inputOptions option for modification:
+ *
+ * `ReturnType.MODIFY_PARAM` will modify directly parsing object
+ * `ReturnType.SHALLOW_COPY` (Default) will create a shallow copy of old object
+ *
+ * @returns {{}} Updated object
+ */
+const updateObject = (oldObj, propertyList, inputOptions = {}) => {
+    const options = {
+        ...defaultOptions,
+        ...inputOptions
+    };
+
+    // options.returnType === ReturnType.SHALLOW_COPY (default)
+    let newObj = { ...oldObj };
+
+    if (options.returnType === ReturnType.MODIFY_PARAM) {
+        newObj = oldObj;
+    }
+
+    return Object.keys(propertyList).reduce((prevObj, modifyKey) => {
+        prevObj[modifyKey] = propertyList[modifyKey];
+        return prevObj;
+    }, newObj);
+};
+
+/**
+ * Swap key and value of an object.
+ * NOTE: If value is not unique, then it will be overwritten by default
+ *
+ * @param {*} obj
+ */
+const swapKeyValue = (obj, inputOptions) => {
+    const options = {
+        ...defaultOptions,
+        ...inputOptions
+    };
+
+    return Object.keys(obj).reduce((prev, key) => {
+        if (options.conflictHandle === ConflictHanlde.KEEP) {
+            const value = prev[obj[key]] === undefined ? key : prev[obj[key]];
+            prev[obj[key]] = value;
+            return prev;
+        }
+
+        if (options.conflictHandle === ConflictHanlde.MAKE_LIST) {
+            const value = prev[obj[key]] === undefined ? key : prev[obj[key]];
+            prev[obj[key]] = value;
+            return prev;
+        }
+
+        if (options.conflictHandle === ConflictHanlde.CUSTOM) {
+            if (prev[obj[key]] === undefined) {
+                prev[obj[key]] = key;
+                return prev;
+            }
+
+            if (Array.isArray(prev[obj[key]])) {
+                return [...prev[obj[key]], key];
+            }
+
+            return [prev[obj[key]], key];
+        }
+
+        // options.conflictHandle === ConflictHanlde.OVERWRITE) ++
+        prev[obj[key]] = key;
+        return prev;
+    }, {});
+};
+
+/**
+ * Edit each value in object with manipulate function
+ *
+ * Ex:
+ * ```
+ * editValue({a:1, b:2}, (key, val) => val * 2)
+ * => {a: 2, b:4}
+ * ```
  * @param {*} object object to edit
  * @param {*} manipulateFunc function for create new object
  *  ```
  *  function (key, value){
- *  // ...
- *  return newValue
+ *      // ...
+ *      return newValue
  *  }
  * ```
  *
  * @returns return new object edited from old object
  */
-const editValue = (object, manipulateFunc) =>
+
+const editValue = (object, manipulateFunc = (key, val) => val) =>
+    Object.keys(object).reduce((prev, key) => {
+        prev[key] = manipulateFunc(key, object[key]);
+        return prev;
+    }, {});
+
+/**
+ * Change key of all properties inside object
+ *
+ *
+ * @param {{}} object
+ * @param {(key) => String} func to modify key return a string key
+ *
+ * @return {{}} new object
+ */
+const editKey = (object, func) =>
     Object.keys(object).reduce(
-        (prev, key) => ({ ...prev, [key]: manipulateFunc(key, object[key]) }),
+        (prev, key) => ({
+            ...prev,
+            [func(key)]: object[key]
+        }),
         {}
     );
 
 /**
- * Edit each value in object with key
- * NOTE: Edit directly parsed object
+ * Merge a list of object using list of modifying by order
+ * If the key is same, then take the last one
  *
- * @param {*} object object to edit
- * @param {*} manipulateFunc function for create new object
- *  ```
- *  function (key, value){
- *  // ...
- *  return newValue
- *  }
+ * Ex:
+ *```
+ * mergeObject([{a: 1, b:2}, {x:3, y:4}])
+ * => {a:1, b:2, c:3, d:4}
+ *
+ * mergeObject([{a: 1, b:2}, {x:3, y:4}],
+ *              [obj => editKey(obj, key => `old.${key}`),
+ *               obj => editKey(obj, key => `new.${key}`)])
+ * => {"old.a": 1, "old.b": 2, "new.x": 3, "new.y": 4}
  * ```
  *
- * @returns return parsed object
+ * @param {*} objList
+ * @param {*} modifyingList
  */
-const editValueDirect = (object, manipulateFunc) =>
-    Object.keys(object).reduce((prev, key) => {
-        prev[key] = manipulateFunc(key, object[key]);
-        return prev;
-    }, object);
+const mergeObject = (objList, modifyingList = []) => {
+    const defaultMoodifying = o => o;
+    return objList.reduce(
+        (prev, curr, index) => ({
+            ...prev,
+            ...(modifyingList[index] || defaultMoodifying)(curr)
+        }),
+        {}
+    );
+};
 
 /**
- * get key by value in array
+ * Get key by value in array, return the first key that match the value
+ *
  * @param {*} object
  * @param {*} value
+ *
  * @return key follow value
  */
 const getKeyByValue = (object, value) =>
@@ -147,14 +183,9 @@ const getKeyByValue = (object, value) =>
 module.exports = {
     updateObject,
     updateProperty,
-    filter,
-    filterList,
-    filterByKeys,
-    filterListByKeys,
-    grepList,
     swapKeyValue,
     editValue,
-    editValueDirect,
-    replateArray,
+    editKey,
+    mergeObject,
     getKeyByValue
 };
