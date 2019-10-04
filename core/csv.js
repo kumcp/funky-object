@@ -32,9 +32,9 @@ const separateStringAsCSVFormat = (line, inputOption = {}) => {
     const splitOperator = new RegExp(
         `(^([^${sep}^${strDlmter}]*)${sep}|`
             + `${sep}|`
-            + `([^${strDlmter}]+[^${sep}]*)${sep}|`
+            + `([^${strDlmter}][^${sep}]*)${sep}|`
             + `${strDlmter}((?:(?!${strDlmter}${sep}).)*)${strDlmter}${sep}|`
-            + `([^${strDlmter}]+[^${sep}]*)$|`
+            + `([^${strDlmter}][^${sep}]*)$|`
             + `${strDlmter}((?:(?!${strDlmter}${sep}).)*)${strDlmter}$)`,
         'g'
     );
