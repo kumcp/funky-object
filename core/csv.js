@@ -18,7 +18,7 @@ const defaultOption = {
  *
  * @returns {Object} new object contain the combination of input options and default options
  */
-const combineDefaultOptions = inputOptions => ({
+const combineDefaultOptions = (inputOptions) => ({
     ...defaultOption,
     ...inputOptions
 });
@@ -32,15 +32,15 @@ const separateStringAsCSVFormat = (line, inputOption = {}) => {
     const splitOperator = new RegExp(
         `(^([^${sep}^${strDlmter}]*)${sep}|`
             + `${sep}|`
-            + `([^${strDlmter}]+[^${sep}]*)${sep}|`
+            + `([^${strDlmter}][^${sep}]*)${sep}|`
             + `${strDlmter}((?:(?!${strDlmter}${sep}).)*)${strDlmter}${sep}|`
-            + `([^${strDlmter}]+[^${sep}]*)$|`
+            + `([^${strDlmter}][^${sep}]*)$|`
             + `${strDlmter}((?:(?!${strDlmter}${sep}).)*)${strDlmter}$)`,
         'g'
     );
     // const values = line.split(options.separator);
     return ((line || '').match(splitOperator) || [])
-        .map(item => {
+        .map((item) => {
             let neatString = item;
 
             if (neatString === '') {
@@ -63,7 +63,7 @@ const separateStringAsCSVFormat = (line, inputOption = {}) => {
 
             return neatString;
         })
-        .filter(item => item !== undefined);
+        .filter((item) => item !== undefined);
 };
 
 /**
@@ -76,9 +76,13 @@ const separateStringAsCSVFormat = (line, inputOption = {}) => {
  */
 const getListValueRequire = (object, fieldRequire, inputOptions = {}) => {
     const options = combineDefaultOptions(inputOptions);
-    return fieldRequire.map(
-        field => escapeValueCSV(object[field]) || options.nullValue
-    );
+    return fieldRequire.map((field) =>
+        (object[field] === undefined
+            ? options.nullValue
+            : escapeValueCSV(object[field], [
+                options.separator,
+                options.endLine
+            ])));
 };
 
 /**
@@ -174,7 +178,10 @@ const setValueRequire = (line, fieldRequire, inputOptions = {}) => {
     return fieldRequire.reduce(
         (prevObj, field, fieldIndex) => ({
             ...prevObj,
-            [field]: values[fieldIndex] ? values[fieldIndex].trim() : ''
+            [field]:
+                values[fieldIndex] !== undefined
+                    ? values[fieldIndex].trim()
+                    : ''
         }),
         {}
     );
@@ -198,11 +205,11 @@ const setValueRequire = (line, fieldRequire, inputOptions = {}) => {
  * ```
  * @param {Array} lines contains a list of string line
  */
-const setLineListValue = lines => {
+const setLineListValue = (lines) => {
     const headers = separateStringAsCSVFormat(lines[0]);
     return lines
         .filter((line, index) => index > 0)
-        .map(lineString => setValueRequire(lineString, headers));
+        .map((lineString) => setValueRequire(lineString, headers));
 };
 
 /**
@@ -211,7 +218,7 @@ const setLineListValue = lines => {
  *
  * @returns {String} data in file
  */
-const readCSV = filePath => fs.readFileSync(filePath, { encoding: 'utf8' });
+const readCSV = (filePath) => fs.readFileSync(filePath, { encoding: 'utf8' });
 
 /**
  * Read csv file and turn into a line string list

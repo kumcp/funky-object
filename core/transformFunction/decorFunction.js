@@ -8,9 +8,9 @@
  * @param {*} object which need to wrap function
  * @param {*} func function in format: (obj, ...args) => {}
  */
-const wrappedObject = (object, func = () => {}) => {
+const wrapObject = (object, func = () => {}, context) => {
     // eslint-disable-next-line no-param-reassign
-    object[func.name] = (...args) => func(this, ...args);
+    object[func.name] = (...args) => func(context ? this : context, ...args);
     return object;
 };
 
@@ -24,11 +24,11 @@ const wrappedObject = (object, func = () => {}) => {
 const decorFunction = (object, mappingFunctionList = {}) =>
     Object.keys(mappingFunctionList).reduce(
         (prevObj, funcName) =>
-            wrappedObject(prevObj, mappingFunctionList[funcName]),
+            wrapObject(prevObj, mappingFunctionList[funcName]),
         object
     );
 
 module.exports = {
-    wrappedObject,
+    wrapObject,
     decorFunction
 };

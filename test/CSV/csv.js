@@ -4,18 +4,36 @@ const { getLineValueRequire, setLineListValue } = require('../../core/csv');
 
 describe('Transform line list to csv', () => {
     describe('Line in the middle: ', () => {
-        it('Normal line list turn to object list in the middle', done => {
+        it('Normal line list turn to object list in the middle', (done) => {
             const lineList = [
-                'id,name,age',
-                '1,Helen,17',
-                '2,Kum,25',
-                '3,クム　高, 20'
+                'id,name,age,job,address',
+                '1,Helen,17,designer,Yokohama',
+                '2,Kum,25,developer,Tokyo',
+                '3,クム　高, 20,gakusei,Hanoi'
             ];
 
             const expectObjectList = [
-                { id: '1', name: 'Helen', age: '17' },
-                { id: '2', name: 'Kum', age: '25' },
-                { id: '3', name: 'クム　高', age: '20' }
+                {
+                    id: '1',
+                    name: 'Helen',
+                    age: '17',
+                    job: 'designer',
+                    address: 'Yokohama'
+                },
+                {
+                    id: '2',
+                    name: 'Kum',
+                    age: '25',
+                    job: 'developer',
+                    address: 'Tokyo'
+                },
+                {
+                    id: '3',
+                    name: 'クム　高',
+                    age: '20',
+                    job: 'gakusei',
+                    address: 'Hanoi'
+                }
             ];
 
             const resultObjectList = setLineListValue(lineList);
@@ -29,13 +47,13 @@ describe('Transform line list to csv', () => {
                     expect(result.age).to.equal(expectObjectList[index].age);
                     return true;
                 })
-                .filter(passObject => passObject).length;
+                .filter((passObject) => passObject).length;
 
             expect(checkResult).to.equal(expectObjectList.length);
             done();
         });
 
-        it('Line list with blank field turn to object list in the middle', done => {
+        it('Line list with blank field turn to object list in the middle', (done) => {
             const lineList = ['id,name,age', '2,,25', '3,クム　高,'];
 
             const expectObjectList = [
@@ -54,7 +72,7 @@ describe('Transform line list to csv', () => {
             done();
         });
 
-        it('Line with comma wrapped in double quotes in the middle', done => {
+        it('Line with comma wrapped in double quotes in the middle', (done) => {
             const lineList = [
                 'id,name,age',
                 '1,"absolutely ,Helen",17',
@@ -79,7 +97,7 @@ describe('Transform line list to csv', () => {
             done();
         });
 
-        it('Line with quotes not as wrapper in the middle', done => {
+        it('Line with quotes not as wrapper in the middle', (done) => {
             const lineList = [
                 'id,name,age',
                 '1,"absolutely ,Helen",17',
@@ -104,7 +122,7 @@ describe('Transform line list to csv', () => {
             done();
         });
 
-        it('Line with quotes and comma wrapped in quote in the middle', done => {
+        it('Line with quotes and comma wrapped in quote in the middle', (done) => {
             const lineList = [
                 'id,name,age',
                 '1,"absolutely ,Helen",17',
@@ -129,7 +147,7 @@ describe('Transform line list to csv', () => {
             done();
         });
 
-        it('Line with blank field wrapped in quote in the middle', done => {
+        it('Line with blank field wrapped in quote in the middle', (done) => {
             const lineList = [
                 'id,name,age',
                 '1,"absolutely ,Helen",17',
@@ -154,7 +172,7 @@ describe('Transform line list to csv', () => {
             done();
         });
 
-        it('Line with multiple quotes in the middle', done => {
+        it('Line with multiple quotes in the middle', (done) => {
             const lineList = [
                 'id,name,age',
                 '1,"absolutely ,Helen",17',
@@ -177,7 +195,7 @@ describe('Transform line list to csv', () => {
             done();
         });
 
-        it('Line with end quote in the middle', done => {
+        it('Line with end quote in the middle', (done) => {
             const lineList = [
                 'id,name,age',
                 '1,"absolutely ,Helen",17',
@@ -200,7 +218,7 @@ describe('Transform line list to csv', () => {
             done();
         });
 
-        it('Line with quote of blank in the middle', done => {
+        it('Line with quote of blank in the middle', (done) => {
             const lineList = ['id,name,age', '1,"",17', '2,here",25'];
 
             const expectObjectList = [
@@ -221,7 +239,7 @@ describe('Transform line list to csv', () => {
     });
 
     describe('Line with special case at first: ', () => {
-        it('Line list with blank field turn to object list at first', done => {
+        it('Line list with blank field turn to object list at first', (done) => {
             const lineList = ['name,age', ',25', 'クム　高,'];
 
             const expectObjectList = [
@@ -239,7 +257,7 @@ describe('Transform line list to csv', () => {
             done();
         });
 
-        it('Line with comma wrapped in double quotes at first', done => {
+        it('Line with comma wrapped in double quotes at first', (done) => {
             const lineList = [
                 'name,age',
                 '"absolutely ,Helen",17',
@@ -263,7 +281,7 @@ describe('Transform line list to csv', () => {
             done();
         });
 
-        it('Line with quotes not as wrapper at first', done => {
+        it('Line with quotes not as wrapper at first', (done) => {
             const lineList = [
                 'name,age',
                 '"absolutely ,Helen",17',
@@ -287,7 +305,7 @@ describe('Transform line list to csv', () => {
             done();
         });
 
-        it('Line with quotes and comma wrapped in quote at first', done => {
+        it('Line with quotes and comma wrapped in quote at first', (done) => {
             const lineList = [
                 'name,age',
                 '"absolutely ,Helen",17',
@@ -313,7 +331,7 @@ describe('Transform line list to csv', () => {
     });
 
     describe('Line with special case at last: ', () => {
-        it('Line list with blank field turn to object list at last', done => {
+        it('Line list with blank field turn to object list at last', (done) => {
             const lineList = ['id,name', '2,', '3,クム　高'];
 
             const expectObjectList = [
@@ -331,7 +349,7 @@ describe('Transform line list to csv', () => {
             done();
         });
 
-        it('Line with comma wrapped in double quotes at last', done => {
+        it('Line with comma wrapped in double quotes at last', (done) => {
             const lineList = [
                 'id,name',
                 '1,"absolutely ,Helen"',
@@ -355,7 +373,7 @@ describe('Transform line list to csv', () => {
             done();
         });
 
-        it('Line with quotes not as wrapper at last', done => {
+        it('Line with quotes not as wrapper at last', (done) => {
             const lineList = [
                 'id,name',
                 '1,"absolutely ,Helen"',
@@ -379,7 +397,7 @@ describe('Transform line list to csv', () => {
             done();
         });
 
-        it('Line with quotes and comma wrapped in quote at last', done => {
+        it('Line with quotes and comma wrapped in quote at last', (done) => {
             const lineList = [
                 'id,name',
                 '1,"absolutely ,Helen"',
@@ -405,15 +423,15 @@ describe('Transform line list to csv', () => {
     });
 
     describe('Uncommon case', () => {
-        it('Header blank', done => {
+        it('Header blank', (done) => {
             done();
         });
 
-        it('Un balance items', done => {
+        it('Un balance items', (done) => {
             done();
         });
 
-        it('Duplicate header', done => {
+        it('Duplicate header', (done) => {
             done();
         });
     });
