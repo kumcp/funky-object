@@ -1,7 +1,11 @@
 /**
  * Check if all props inside objectExtract contained
  * and has the same value in objectCheck or not. (not recursive)
- *
+ * Ex:
+ * ```
+ * isContain({a:1, b:2, c:3}, {b:2, c:3}) == true
+ * isContain({a:1, b:2, c:3}, {d:4}) == false
+ * ```
  * @param {{}} objectExtract
  * @param {{}} objectCheck
  *

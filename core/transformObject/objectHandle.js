@@ -127,7 +127,7 @@ const editValue = (object, manipulateFunc = (key, val) => val) =>
  *
  *
  * @param {{}} object
- * @param {(key) => String} func to modify key return a string key
+ * @param {(key, val) => String} func to modify key return a string key
  *
  * @return {{}} new object
  */
@@ -135,7 +135,7 @@ const editKey = (object, func) =>
     Object.keys(object).reduce(
         (prev, key) => ({
             ...prev,
-            [func(key)]: object[key]
+            [func(key, object[key])]: object[key]
         }),
         {}
     );
@@ -159,11 +159,11 @@ const editKey = (object, func) =>
  * @param {*} modifyingList
  */
 const mergeObject = (objList, modifyingList = []) => {
-    const defaultMoodifying = o => o;
+    const defaultModifying = o => o;
     return objList.reduce(
         (prev, curr, index) => ({
             ...prev,
-            ...(modifyingList[index] || defaultMoodifying)(curr)
+            ...(modifyingList[index] || defaultModifying)(curr)
         }),
         {}
     );
@@ -182,7 +182,6 @@ const getKeyByValue = (object, value) =>
 
 module.exports = {
     updateObject,
-    updateProperty,
     swapKeyValue,
     editValue,
     editKey,
