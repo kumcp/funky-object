@@ -1,6 +1,6 @@
 # funky-promisify
 
-A simple module to help you to tranform a function in callback style to promise style and vice versa
+A simple module to help you to tranform object/function/list from a type to another type
 
 # Using
 
@@ -9,6 +9,9 @@ A simple module to help you to tranform a function in callback style to promise 
 ### 1.1 Filter
 
 ```
+
+const { ObjectTransform } = require('funcky-object');s
+
 const object = {
     a: 1,
     b: 2,
@@ -113,6 +116,4 @@ let functionWithCallback = callbackify(functionPromise, {})
 
 ### 4.2 Decorate function
 
-```
-
-```
+(updating)
