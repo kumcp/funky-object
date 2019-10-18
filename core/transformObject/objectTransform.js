@@ -112,6 +112,7 @@ const spreadNestedObject = (object, fieldList) =>
     }, {});
 
 module.exports = {
+    objectFilter,
     flattenChildrenObjectList,
     objectFilterByKeys,
     spreadNestedObject

@@ -1,0 +1,63 @@
+version: 2
+jobs:
+  build:
+    working_directory: ~/opt/funcky-object
+    docker:
+      - image: circleci/node:10.16.3
+    steps:
+      - setup_remote_docker
+      - checkout:
+          path: ~/opt
+      - run:
+          name: install and update npm
+          command: "sudo npm install -g npm@latest"
+      - restore_cache: # special step to restore the dependency cache
+          key: dependency-cache-{{ checksum "package.json" }}
+      - run:
+          name: install packages wee
+          command: npm install
+      - save_cache: # special step to save the dependency cache
+          key: dependency-cache-{{ checksum "package.json" }}
+          paths:
+            - ./node_modules
+      - run: # special step to walk around the database launch to avoid race condition
+          # https://circleci.com/docs/2.0/databases/#using-dockerize-to-wait-for-dependencies
+          name: install dockerize
+          command: wget https://github.com/jwilder/dockerize/releases/download/$DOCKERIZE_VERSION/dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz && sudo tar -C /usr/local/bin -xzvf dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz && rm dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz
+          environment:
+            DOCKERIZE_VERSION: v0.3.0
+      - run:
+          name: test
+          # command: ./node_modules/.bin/nyc npm test
+          command: ./node_modules/.bin/nyc npm run test
+      - run:
+          name: code-coverage
+          command: |
+            mkdir coverage
+            # nyc report requires that nyc has already been run,
+            # which creates the .nyc_output folder containing necessary data
+            ./node_modules/.bin/nyc report --reporter=text-lcov > coverage/lcov.info
+            # ./cc-test-reporter after-build -t lcov
+      - store_artifacts: # special step to save test results as as artifact
+          # Upload test summary for display in Artifacts: https://circleci.com/docs/2.0/artifacts/
+          path: test-results.xml
+          prefix: tests
+      - store_artifacts: # for display in Artifacts: https://circleci.com/docs/2.0/artifacts/
+          path: coverage
+          prefix: coverage
+      - store_test_results: # for display in Test Summary: https://circleci.com/docs/2.0/collect-test-data/
+          path: test-results.xml
+
+workflows:
+  version: 2
+  dev_stage_pre-prod:
+    jobs:
+      - build:
+          filters:
+            branches:
+              only:
+                - master
+                - develop
+                - /issue-.*/
+                - /release\/.*/
+                - /backlog-.*/
