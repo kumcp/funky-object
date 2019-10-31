@@ -1,4 +1,3 @@
-const funkyTransform = require("./core/main.js")
+const funkyTransform = require('./core/main.js');
 
-
-module.exports = funkyTransform
+module.exports = funkyTransform;

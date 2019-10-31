@@ -1,5 +1,5 @@
 {
-    "name": "funky-object",
+    "name": "@kum/funky-object",
     "version": "1.1.0",
     "description": "This is a simple library to help you to manipulate or transform object/function",
     "main": "index.js",
